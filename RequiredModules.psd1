@@ -18,5 +18,3 @@
     'DscResource.AnalyzerRules' = 'latest'
     xDscResourceDesigner        = 'latest'
 }
-
-
