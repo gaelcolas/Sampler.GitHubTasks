@@ -113,6 +113,8 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
         Write-Build DarkGray "Publishing GitHub release:"
         Write-Build DarkGray ($releaseParams | Out-String)
 
+        Write-Build DarkGrey "Checking if the Release exists: Get-GithubRelease -Tag $ReleaseTag -AccessToken `$GitHubToken -Uri $remoteURL -ErrorAction SilentlyContinue"
+
         if (-not (Get-GithubRelease -Tag $ReleaseTag -AccessToken $GitHubToken -Uri $remoteURL -ErrorAction SilentlyContinue))
         {
             Write-Build DarkGray "Creating new GitHub release '$ReleaseTag ' at '$remoteURL'."
@@ -184,8 +186,8 @@ task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerSh
         git config user.email $GitHubConfigUserEmail
         git commit -m "Updating ChangeLog since $TagVersion +semver:skip"
 
-        $URI = [URI](git remote get-url origin)
-        $URI = $Uri.Scheme + [URI]::SchemeDelimiter + $GitHubToken + '@' + $URI.Authority + $URI.PathAndQuery
+        $remoteURL =  [URI](git remote get-url origin)
+        $URI = $remoteURL.Scheme + [URI]::SchemeDelimiter + $GitHubToken + '@' + $remoteURL.Authority + $remoteURL.PathAndQuery
 
         # Update the PUSH URI to use the Personal Access Token for Auth
         git remote set-url --push origin $URI
@@ -195,7 +197,7 @@ task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerSh
 
         $NewPullRequestParams = @{
             AccessToken         = $GitHubToken
-            Uri                 = $URI
+            Uri                 = $remoteURL
             Title               = "Updating ChangeLog since release of $TagVersion"
             Head                = $BranchName
             Base                = $MainGitBranch
