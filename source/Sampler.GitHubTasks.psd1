@@ -97,7 +97,7 @@
             ProjectUri = 'https://github.com/gaelcolas/Sampler.GitHubTasks'
 
             # A URL to an icon representing this module.
-            IconUri = ''
+            IconUri = 'https://raw.githubusercontent.com/gaelcolas/Sampler.GitHubTasks/main/source/assets/sampler_GitHubTasks.png'
 
             # ReleaseNotes of this module
             ReleaseNotes = ''
