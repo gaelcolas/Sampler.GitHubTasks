@@ -9,7 +9,14 @@
     PSScriptAnalyzer            = '1.19.0'
     Pester                      = '4.10.1'
     Plaster                     = 'latest'
-    Sampler                     = 'latest'
+
+    Sampler                     = @{
+        version = 'latest'
+        Parameters = @{
+            AllowPrerelease = $true
+        }
+    }
+
     ModuleBuilder               = 'latest'
     MarkdownLinkCheck           = 'latest'
     ChangelogManagement         = 'latest'

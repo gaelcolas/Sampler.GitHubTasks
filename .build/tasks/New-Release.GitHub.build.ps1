@@ -113,11 +113,18 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
         Write-Build DarkGray "Publishing GitHub release:"
         Write-Build DarkGray ($releaseParams | Out-String)
 
-        if (-not (Get-GithubRelease -Tag $ReleaseTag -AccessToken $GitHubToken))
+        if (-not (Get-GithubRelease -Tag $ReleaseTag -AccessToken $GitHubToken -Uri $remoteURL -ErrorAction SilentlyContinue))
         {
+            Write-Build DarkGray "Creating new GitHub release '$ReleaseTag ' at '$remoteURL'."
             $APIResponse = New-GitHubRelease @releaseParams
-            Write-Build Green "Release Created. Follow the link -> $($APIResponse.html_url)"
-            $APIResponse | New-GitHubReleaseAsset -Path $PackageToRelease -AccessToken $GitHubToken
+            Write-Build Green "Release Created. Adding Asset..."
+            if (Test-Path -Path $PackageToRelease)
+            {
+                $APIResponse | New-GitHubReleaseAsset -Path $PackageToRelease -AccessToken $GitHubToken
+                Write-Build Green "Asset added."
+            }
+
+            Write-Build Green "Follow the link -> $($APIResponse.html_url)"
         }
         else
         {
