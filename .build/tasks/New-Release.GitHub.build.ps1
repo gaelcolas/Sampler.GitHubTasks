@@ -44,7 +44,7 @@ param (
     $MainGitBranch = (property MainGitBranch 'master')
 )
 
-task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShellForGitHub)) {
+task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShellForGitHub -ListAvailable)) {
 
     if ([System.String]::IsNullOrEmpty($ProjectName))
     {
