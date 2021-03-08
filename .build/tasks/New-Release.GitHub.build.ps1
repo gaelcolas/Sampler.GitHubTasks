@@ -113,7 +113,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
         Write-Build DarkGray "Publishing GitHub release:"
         Write-Build DarkGray ($releaseParams | Out-String)
 
-        Write-Build DarkGrey "Checking if the Release exists: Get-GithubRelease -Tag $ReleaseTag -AccessToken `$GitHubToken -Uri $remoteURL -ErrorAction SilentlyContinue"
+        Write-Build DarkGray "Checking if the Release exists: Get-GithubRelease -Tag $ReleaseTag -AccessToken `$GitHubToken -Uri $remoteURL -ErrorAction SilentlyContinue"
 
         if (-not (Get-GithubRelease -Tag $ReleaseTag -AccessToken $GitHubToken -Uri $remoteURL -ErrorAction SilentlyContinue))
         {
