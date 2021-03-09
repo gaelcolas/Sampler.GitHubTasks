@@ -1,7 +1,22 @@
+<#
+    .SYNOPSIS
+        Extract GitHub Owner and Repository Name from Uri (ssh or https).
 
-# from https://github.com/PowerShell/vscode-powershell/blob/master/tools/GitHubTools.psm1
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License.
+    .DESCRIPTION
+        This function will look into a remote Url (https:// or ssh://) and will extract the GitHub owner
+        and the repository name.
+
+        from https://github.com/PowerShell/vscode-powershell/blob/master/tools/GitHubTools.psm1
+        Copyright (c) Microsoft Corporation. All rights reserved.
+        Licensed under the MIT License.
+
+    .PARAMETER RemoteUrl
+        Remote URL of the repository, you can get it in a cloned repository by doing: `git remote get-url origin`
+
+    .EXAMPLE
+        Get-GHOwnerRepoFromRemoteUrl -RemoteUrl git@github.com:gaelcolas/Sampler.GitHubTasks.git
+
+#>
 function Get-GHOwnerRepoFromRemoteUrl
 {
     [CmdletBinding()]
