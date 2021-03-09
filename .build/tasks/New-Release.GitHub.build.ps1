@@ -199,6 +199,7 @@ task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerSh
 
     $BranchName = "updateChangelogAfter$TagVersion"
     git checkout -B $BranchName
+
     try
     {
         Write-Build DarkGray "Updating Changelog file"
@@ -209,6 +210,8 @@ task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerSh
         git commit -m "Updating ChangeLog since $TagVersion +semver:skip"
 
         $remoteURL =  [URI](git remote get-url origin)
+        $repoInfo = Get-GHOwnerRepoFromRemoteUrl -RemoteUrl $remoteURL
+
         $URI = $remoteURL.Scheme + [URI]::SchemeDelimiter + $GitHubToken + '@' + $remoteURL.Authority + $remoteURL.PathAndQuery
 
         # Update the PUSH URI to use the Personal Access Token for Auth
@@ -219,7 +222,8 @@ task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerSh
 
         $NewPullRequestParams = @{
             AccessToken         = $GitHubToken
-            Uri                 = $remoteURL
+            OwnerName           = $repoInfo.Owner
+            RepositoryName      = $repoInfo.Repository
             Title               = "Updating ChangeLog since release of $TagVersion"
             Head                = $BranchName
             Base                = $MainGitBranch
