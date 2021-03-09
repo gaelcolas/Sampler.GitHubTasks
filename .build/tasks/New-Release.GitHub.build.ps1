@@ -66,6 +66,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
         ProjectName     = $ProjectName
     }
 
+
     $ModuleVersion = Get-BuiltModuleVersion @getModuleVersionParameters
     $ModuleVersionFolder, $PreReleaseTag = $ModuleVersion -split '\-', 2
 
@@ -97,15 +98,18 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
     # if you want to create the tag on /release/v$ModuleVersion branch (default to master)
     $ReleaseBranch = $ExecutionContext.InvokeCommand.ExpandString($ReleaseBranch)
+    $repoInfo = Get-GHOwnerRepoFromRemoteUrl -RemoteUrl $remoteURL
+    Set-GitHubConfiguration -DisableTelemetry
 
     $releaseParams = @{
-        URI         = $remoteURL
-        Tag         = $ReleaseTag
-        Name        = $ReleaseTag
-        Branch      = $ReleaseBranch
-        Prerelease  = [bool]($PreReleaseTag)
-        Body        = $ReleaseNotes
-        AccessToken = $GitHubToken
+        OwnerName      = $repoInfo.Owner
+        RepositoryName = $repoInfo.Repository
+        Tag            = $ReleaseTag
+        Name           = $ReleaseTag
+        Branch         = $ReleaseBranch
+        Prerelease     = [bool]($PreReleaseTag)
+        Body           = $ReleaseNotes
+        AccessToken    = $GitHubToken
     }
 
     if (!$SkipPublish)
@@ -115,9 +119,17 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
         Write-Build DarkGray "Checking if the Release exists: Get-GithubRelease -Tag $ReleaseTag -AccessToken `$GitHubToken -Uri $remoteURL -ErrorAction SilentlyContinue"
 
+        $getGHReleaseParams = @{
+            Tag            = $ReleaseTag
+            AccessToken    = $GitHubToken
+            OwnerName      = $repoInfo.Owner
+            RepositoryName = $repoInfo.Repository
+            ErrorAction    = 'Stop'
+        }
+
         try
         {
-            $release = Get-GithubRelease -Tag $ReleaseTag -AccessToken $GitHubToken -Uri $remoteURL -ErrorAction Stop
+            $release = Get-GithubRelease @getGHReleaseParams
         }
         catch
         {
@@ -139,7 +151,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
         }
         else
         {
-            Write-Build Green "Release for $ReleaseTag Already exits. Release: $($release | ConvertTo-Json -Depth 5)"
+            Write-Build Yellow "Release for $ReleaseTag Already exits. Release: $($release | ConvertTo-Json -Depth 5)"
         }
     }
 }
