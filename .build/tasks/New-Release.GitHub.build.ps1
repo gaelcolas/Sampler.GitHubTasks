@@ -115,7 +115,16 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
         Write-Build DarkGray "Checking if the Release exists: Get-GithubRelease -Tag $ReleaseTag -AccessToken `$GitHubToken -Uri $remoteURL -ErrorAction SilentlyContinue"
 
-        if (-not (Get-GithubRelease -Tag $ReleaseTag -AccessToken $GitHubToken -Uri $remoteURL -ErrorAction SilentlyContinue))
+        try
+        {
+            $release = Get-GithubRelease -Tag $ReleaseTag -AccessToken $GitHubToken -Uri $remoteURL -ErrorAction Stop
+        }
+        catch
+        {
+            $release = $null
+        }
+
+        if ($null -eq $release)
         {
             Write-Build DarkGray "Creating new GitHub release '$ReleaseTag ' at '$remoteURL'."
             $APIResponse = New-GitHubRelease @releaseParams
@@ -130,7 +139,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
         }
         else
         {
-            Write-Build Green "Release for $ReleaseTag Already exits."
+            Write-Build Green "Release for $ReleaseTag Already exits. Release: $($release | ConvertTo-Json -Depth 5)"
         }
     }
 }
