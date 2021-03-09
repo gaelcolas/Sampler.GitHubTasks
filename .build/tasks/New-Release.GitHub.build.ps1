@@ -145,7 +145,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
             if (Test-Path -Path $PackageToRelease)
             {
                 $APIResponse | New-GitHubReleaseAsset -Path $PackageToRelease -AccessToken $GitHubToken
-                Write-Build Green "Asset added."
+                Write-Build Green "Asset '$PackageToRelease' added."
             }
 
             Write-Build Green "Follow the link -> $($APIResponse.html_url)"
