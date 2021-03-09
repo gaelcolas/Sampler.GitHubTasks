@@ -101,23 +101,10 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
     $repoInfo = Get-GHOwnerRepoFromRemoteUrl -RemoteUrl $remoteURL
     Set-GitHubConfiguration -DisableTelemetry
 
-    $releaseParams = @{
-        OwnerName      = $repoInfo.Owner
-        RepositoryName = $repoInfo.Repository
-        Tag            = $ReleaseTag
-        Name           = $ReleaseTag
-        Branch         = $ReleaseBranch
-        Prerelease     = [bool]($PreReleaseTag)
-        Body           = $ReleaseNotes
-        AccessToken    = $GitHubToken
-    }
-
     if (!$SkipPublish)
     {
         Write-Build DarkGray "Publishing GitHub release:"
         Write-Build DarkGray ($releaseParams | Out-String)
-
-        Write-Build DarkGray "Checking if the Release exists: Get-GithubRelease -Tag $ReleaseTag -AccessToken `$GitHubToken -Uri $remoteURL -ErrorAction SilentlyContinue"
 
         $getGHReleaseParams = @{
             Tag            = $ReleaseTag
@@ -126,6 +113,8 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
             RepositoryName = $repoInfo.Repository
             ErrorAction    = 'Stop'
         }
+
+        Write-Build DarkGray "Checking if the Release exists: `r`n Get-GithubRelease $($getGHReleaseParams | Out-String)"
 
         try
         {
@@ -138,6 +127,18 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
         if ($null -eq $release)
         {
+            $releaseParams = @{
+                OwnerName      = $repoInfo.Owner
+                RepositoryName = $repoInfo.Repository
+                Commitish      = (git @('rev-parse', "origin/$MainGitBranch"))
+                Tag            = $ReleaseTag
+                Name           = $ReleaseTag
+                Prerelease     = [bool]($PreReleaseTag)
+                Body           = $ReleaseNotes
+                AccessToken    = $GitHubToken
+                Verbose        = $true
+            }
+
             Write-Build DarkGray "Creating new GitHub release '$ReleaseTag ' at '$remoteURL'."
             $APIResponse = New-GitHubRelease @releaseParams
             Write-Build Green "Release Created. Adding Asset..."
