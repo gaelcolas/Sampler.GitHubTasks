@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Making this project use the prerelease version of Sampler for testing.
 - Display GitHub Release info if already exists.
 - GitHub New PR to use Owner/Repo name.
-- Added Create GH PR upon release.
+- Updated publish workflow in build.yml to Create GH PR upon release.
 
 ### Fixed
 
