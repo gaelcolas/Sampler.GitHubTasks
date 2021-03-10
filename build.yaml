@@ -25,7 +25,7 @@ NestedModule:
 #    OutputDirectory: ///Modules/HelperSubmodule
 #    VersionedOutputDirectory: false
 #    AddToManifest: false
-#    SemVer: 
+#    SemVer:
 #    # suffix:
 #    # prefix:
 
@@ -64,6 +64,7 @@ BuildWorkflow:
   publish:
     - publish_module_to_gallery
     - Publish_release_to_GitHub
+    - Create_ChangeLog_GitHub_PR
 
 ####################################################
 #       PESTER  Configuration                      #
@@ -117,6 +118,12 @@ TaskHeader: |
   Write-Build DarkGray "  $($Task.InvocationInfo.ScriptName):$($Task.InvocationInfo.ScriptLineNumber)"
   ""
 
-
-
-
+####################################################
+#               GitHub Configuration               #
+####################################################
+GitHubConfig:
+  GitHubFilesToAdd:
+    - 'CHANGELOG.md'
+  GitHubConfigUserName: gaelcolas
+  # GitHubConfigUserEmail: dsccommunity@outlook.com # from Pipeline variable
+  UpdateChangelogOnPrerelease: false
