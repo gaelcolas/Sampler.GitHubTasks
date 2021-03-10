@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Display GitHub Release info if already exists.
 - GitHub New PR to use Owner/Repo name.
 - Updated publish workflow in build.yml to Create GH PR upon release.
+- Updated the Readme with the icon.
 
 ### Fixed
 
