@@ -149,6 +149,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
             }
 
             Write-Build Green "Follow the link -> $($APIResponse.html_url)"
+            Start-Sleep -Seconds 5 # Making a pause to make sure the tag will be available at next Git Pull
         }
         else
         {
@@ -178,9 +179,17 @@ task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerSh
         }
     }
 
-    git @('pull', 'origin', $MainGitBranch, '--tag')
+    &git @('config', 'user.name', $GitHubConfigUserName)
+    &git @('config', 'user.email', $GitHubConfigUserEmail)
+    &git @('config', 'pull.rebase', 'true')
+    &git @('pull', 'origin', $MainGitBranch, '--tag')
     # Look at the tags on latest commit for origin/$MainGitBranch (assume we're on detached head)
-    $TagsAtCurrentPoint = git @('tag', '-l', '--points-at', (git @('rev-parse', "origin/$MainGitBranch")))
+    Write-Build DarkGray "git rev-parse origin/$MainGitBranch"
+    $MainHeadCommit = (git @('rev-parse', "origin/$MainGitBranch"))
+    Write-Build DarkGray "git tag -l --points-at $MainHeadCommit"
+    $TagsAtCurrentPoint = git @('tag', '-l', '--points-at', $MainHeadCommit)
+    Write-Build DarkGray ($TagsAtCurrentPoint -join '|')
+
     # Only Update changelog if last commit is a full release
     if ($UpdateChangelogOnPrerelease)
     {
@@ -193,11 +202,13 @@ task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerSh
     }
     else
     {
-        Write-Build Yellow "No Release Tag found to update the ChangeLog from"
+        Write-Build Yellow "No Release Tag found to update the ChangeLog from in '$TagsAtCurrentPoint'"
         return
     }
 
     $BranchName = "updateChangelogAfter$TagVersion"
+    Write-Build DarkGray "Creating branch $BranchName"
+
     git checkout -B $BranchName
 
     try
@@ -205,8 +216,6 @@ task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerSh
         Write-Build DarkGray "Updating Changelog file"
         Update-Changelog -ReleaseVersion ($TagVersion -replace '^v') -LinkMode None -Path $ChangelogPath -ErrorAction SilentlyContinue
         git add $GitHubFilesToAdd
-        git config user.name $GitHubConfigUserName
-        git config user.email $GitHubConfigUserEmail
         git commit -m "Updating ChangeLog since $TagVersion +semver:skip"
 
         $remoteURL =  [URI](git remote get-url origin)
