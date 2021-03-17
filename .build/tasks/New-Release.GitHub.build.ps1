@@ -2,18 +2,26 @@ param (
     # Base directory of all output (default to 'output')
 
     [Parameter()]
-    [string]
-    $OutputDirectory = (property OutputDirectory (Join-Path $BuildRoot 'output')),
+    [System.String]
+    $BuiltModuleSubdirectory = (property BuiltModuleSubdirectory ''),
+
+    [Parameter()]
+    [System.Management.Automation.SwitchParameter]
+    $VersionedOutputDirectory = (property VersionedOutputDirectory $true),
+
+    [Parameter()]
+    [System.String]
+    $ProjectName = (property ProjectName $(Get-SamplerProjectName -BuildRoot $BuildRoot)),
+
+    [Parameter()]
+    [System.String]
+    $SourcePath = (property SourcePath $(Get-SamplerSourcePath -BuildRoot $BuildRoot)),
 
     [Parameter()]
     $ChangelogPath = (property ChangelogPath 'CHANGELOG.md'),
 
     [Parameter()]
     $ReleaseNotesPath = (property ReleaseNotesPath (Join-Path $OutputDirectory 'ReleaseNotes.md')),
-
-    [Parameter()]
-    [string]
-    $ProjectName = (property ProjectName ''),
 
     [Parameter()]
     [string]
@@ -45,33 +53,61 @@ param (
 )
 
 task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShellForGitHub -ListAvailable)) {
+    $OutputDirectory = Get-SamplerAbsolutePath -Path $OutputDirectory -RelativeTo $BuildRoot
+    "`tOutputDirectory       = '$OutputDirectory'"
+    $BuiltModuleSubdirectory = Get-SamplerAbsolutePath -Path $BuiltModuleSubdirectory -RelativeTo $OutputDirectory
 
-    if ([System.String]::IsNullOrEmpty($ProjectName))
+    if ($VersionedOutputDirectory)
     {
-        $ProjectName = Get-SamplerProjectName -BuildRoot $BuildRoot
+        # VersionedOutputDirectory is not [bool]'' nor $false nor [bool]$null
+        # Assume true, wherever it was set
+        $VersionedOutputDirectory = $true
     }
-
-    if (!(Split-Path $OutputDirectory -IsAbsolute))
+    else
     {
-        $OutputDirectory = Join-Path $BuildRoot $OutputDirectory
+        # VersionedOutputDirectory may be [bool]'' but we can't tell where it's
+        # coming from, so assume the build info (Build.yaml) is right
+        $VersionedOutputDirectory = $BuildInfo['VersionedOutputDirectory']
     }
 
-    if (!(Split-Path -isAbsolute $ReleaseNotesPath))
-    {
-        $ReleaseNotesPath = Join-Path $OutputDirectory $ReleaseNotesPath
+    $GetBuiltModuleManifestParams = @{
+        OutputDirectory          = $OutputDirectory
+        BuiltModuleSubdirectory  = $BuiltModuleSubDirectory
+        ModuleName               = $ProjectName
+        VersionedOutputDirectory = $VersionedOutputDirectory
+        ErrorAction              = 'Stop'
     }
 
-    $getModuleVersionParameters = @{
-        OutputDirectory = $OutputDirectory
-        ProjectName     = $ProjectName
-    }
+    $builtModuleManifest = Get-SamplerBuiltModuleManifest @GetBuiltModuleManifestParams
+    $builtModuleManifest = (Get-Item -Path $builtModuleManifest).FullName
+    "`tBuilt Module Manifest         = '$builtModuleManifest'"
 
+    $builtModuleBase = Get-SamplerBuiltModuleBase @GetBuiltModuleManifestParams
+    $builtModuleBase = (Get-Item -Path $builtModuleBase).FullName
+    "`tBuilt Module Base             = '$builtModuleBase'"
 
-    $ModuleVersion = Get-BuiltModuleVersion @getModuleVersionParameters
-    $ModuleVersionFolder, $PreReleaseTag = $ModuleVersion -split '\-', 2
+    $ReleaseNotesPath = Get-SamplerAbsolutePath -Path $ReleaseNotesPath -RelativeTo $OutputDirectory
+    "`tRelease Notes Path            = '$ReleaseNotesPath'"
+
+    $ChangelogPath = Get-SamplerAbsolutePath -Path $ChangeLogPath -RelativeTo $ProjectPath
+    "`Changelog Path                 = '$ChangeLogPath'"
+
+    $moduleVersion = Get-BuiltModuleVersion @GetBuiltModuleManifestParams
+    $moduleVersionObject = Split-ModuleVersion -ModuleVersion $moduleVersion
+    $moduleVersionFolder = $moduleVersionObject.Version
+    $preReleaseTag       = $moduleVersionObject.PreReleaseString
+
+    "`tModule Version                = '$ModuleVersion'"
+    "`tModule Version Folder         = '$moduleVersionFolder'"
+    "`tPre-release Tag               = '$preReleaseTag'"
+
+    "`tProject Path                  = $ProjectPath"
+    "`tProject Name                  = $ProjectName"
+    "`tSource Path                   = $SourcePath"
+    "`tBuilt Module Base             = $builtModuleBase"
 
     # find Module's nupkg
-    $PackageToRelease = Get-ChildItem (Join-Path $OutputDirectory "$ProjectName.$ModuleVersion.nupkg")
+    $PackageToRelease = Get-ChildItem (Join-Path $OutputDirectory "$ProjectName.$moduleVersion.nupkg")
     $ReleaseTag = "v$ModuleVersion"
 
     Write-Build DarkGray "About to release '$PackageToRelease' with tag and release name '$ReleaseTag'"
@@ -86,7 +122,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
     # Retrieving ReleaseNotes or defaulting to Updated ChangeLog
     if (Import-Module ChangelogManagement -ErrorAction SilentlyContinue -PassThru)
     {
-        $ReleaseNotes = (Get-ChangelogData -Path $ChangeLogPath).Unreleased.RawData -replace '\[unreleased\]', "[v$ModuleVersion]"
+        $ReleaseNotes = (Get-ChangelogData -Path $ChangeLogPath).Unreleased.RawData -replace '\[unreleased\]', "[$ReleaseTag]"
     }
     else
     {
@@ -167,6 +203,9 @@ task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerSh
     # git @('pull', 'origin', $MainGitBranch)
     # # git fetch --force --tags --prune --progress --no-recurse-submodules origin
     # # git @('checkout', '--progress', '--force' (git @('rev-parse', "origin/$MainGitBranch")))
+
+    $ChangelogPath = Get-SamplerAbsolutePath -Path $ChangeLogPath -RelativeTo $ProjectPath
+    "`Changelog Path                 = '$ChangeLogPath'"
 
     foreach ($GitHubConfigKey in @('GitHubFilesToAdd', 'GitHubConfigUserName', 'GitHubConfigUserEmail', 'UpdateChangelogOnPrerelease'))
     {
