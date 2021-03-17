@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Fixed tasks to use the new Sampler version and its public functions.
 - Fixed RootModule not loaded because of Module Manifest.
 - Making this project use the prerelease version of Sampler for testing.
 - Display GitHub Release info if already exists.
