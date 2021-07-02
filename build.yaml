@@ -121,8 +121,10 @@ TaskHeader: |
 #               GitHub Configuration               #
 ####################################################
 GitHubConfig:
+  ReleaseAssets:
+    - 'output/CHANGELOG.md'
   GitHubFilesToAdd:
     - 'CHANGELOG.md'
   GitHubConfigUserName: gaelcolas
-  # GitHubConfigUserEmail: dsccommunity@outlook.com # from Pipeline variable
+  GitHubConfigUserEmail: psgallery@synedgy.com
   UpdateChangelogOnPrerelease: false
