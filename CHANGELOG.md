@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Created module with GitHub tasks from Sampler.
+- Support to add assets to GitHub released by defining the `ReleaseAssets` key in `build.yml` GitHubConfig.
 - Added logo.
 - Added Get-GHOwnerRepoFromRemoteUrl function.
 
@@ -25,3 +26,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed typo when adding debug output for GH task.
+- Fixed using the `Set-SamplerTaskVariable` in GH tasks.

@@ -53,38 +53,9 @@ param (
 )
 
 task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShellForGitHub -ListAvailable)) {
-    $OutputDirectory = Get-SamplerAbsolutePath -Path $OutputDirectory -RelativeTo $BuildRoot
-    "`tOutputDirectory       = '$OutputDirectory'"
-    $BuiltModuleSubdirectory = Get-SamplerAbsolutePath -Path $BuiltModuleSubdirectory -RelativeTo $OutputDirectory
 
-    if ($VersionedOutputDirectory)
-    {
-        # VersionedOutputDirectory is not [bool]'' nor $false nor [bool]$null
-        # Assume true, wherever it was set
-        $VersionedOutputDirectory = $true
-    }
-    else
-    {
-        # VersionedOutputDirectory may be [bool]'' but we can't tell where it's
-        # coming from, so assume the build info (Build.yaml) is right
-        $VersionedOutputDirectory = $BuildInfo['VersionedOutputDirectory']
-    }
+    . Set-SamplerTaskVariable
 
-    $GetBuiltModuleManifestParams = @{
-        OutputDirectory          = $OutputDirectory
-        BuiltModuleSubdirectory  = $BuiltModuleSubDirectory
-        ModuleName               = $ProjectName
-        VersionedOutputDirectory = $VersionedOutputDirectory
-        ErrorAction              = 'Stop'
-    }
-
-    $builtModuleManifest = Get-SamplerBuiltModuleManifest @GetBuiltModuleManifestParams
-    $builtModuleManifest = (Get-Item -Path $builtModuleManifest).FullName
-    "`tBuilt Module Manifest         = '$builtModuleManifest'"
-
-    $builtModuleBase = Get-SamplerBuiltModuleBase @GetBuiltModuleManifestParams
-    $builtModuleBase = (Get-Item -Path $builtModuleBase).FullName
-    "`tBuilt Module Base             = '$builtModuleBase'"
 
     $ReleaseNotesPath = Get-SamplerAbsolutePath -Path $ReleaseNotesPath -RelativeTo $OutputDirectory
     "`tRelease Notes Path            = '$ReleaseNotesPath'"
@@ -92,19 +63,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
     $ChangelogPath = Get-SamplerAbsolutePath -Path $ChangeLogPath -RelativeTo $ProjectPath
     "`Changelog Path                 = '$ChangeLogPath'"
 
-    $moduleVersion = Get-BuiltModuleVersion @GetBuiltModuleManifestParams
-    $moduleVersionObject = Split-ModuleVersion -ModuleVersion $moduleVersion
-    $moduleVersionFolder = $moduleVersionObject.Version
-    $preReleaseTag       = $moduleVersionObject.PreReleaseString
-
-    "`tModule Version                = '$ModuleVersion'"
-    "`tModule Version Folder         = '$moduleVersionFolder'"
-    "`tPre-release Tag               = '$preReleaseTag'"
-
     "`tProject Path                  = $ProjectPath"
-    "`tProject Name                  = $ProjectName"
-    "`tSource Path                   = $SourcePath"
-    "`tBuilt Module Base             = $builtModuleBase"
 
     # find Module's nupkg
     $PackageToRelease = Get-ChildItem (Join-Path $OutputDirectory "$ProjectName.$moduleVersion.nupkg")
@@ -177,11 +136,34 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
             Write-Build DarkGray "Creating new GitHub release '$ReleaseTag ' at '$remoteURL'."
             $APIResponse = New-GitHubRelease @releaseParams
-            Write-Build Green "Release Created. Adding Asset..."
+            Write-Build Green "Release Created. Adding Assets..."
             if (Test-Path -Path $PackageToRelease)
             {
                 $APIResponse | New-GitHubReleaseAsset -Path $PackageToRelease -AccessToken $GitHubToken
                 Write-Build Green "Asset '$PackageToRelease' added."
+            }
+
+            if ($ReleaseAssets = $BuildInfo.GitHubConfig.ReleaseAssets)
+            {
+                foreach ($assetToRelease in $ReleaseAssets)
+                {
+                    $assetToRelease = $ExecutionContext.InvokeCommand.ExpandString($assetToRelease)
+                    if (Test-Path -Path $assetToRelease -ErrorAction SilentlyContinue)
+                    {
+                        (Get-Item -Path $assetToRelease -ErrorAction 'SilentlyContinue').FullName | ForEach-Object -Process {
+                            $APIResponse | New-GitHubReleaseAsset -Path $_ -AccessToken $GitHubToken
+                            Write-Build Green "    + Adding asset '$_' to the relase $ReleaseTag."
+                        }
+                    }
+                    else
+                    {
+                        Write-Build Yellow "    ! Asset '$_' not found."
+                    }
+                }
+            }
+            else
+            {
+                Write-Build DarkGray 'No extra asset to add to release.'
             }
 
             Write-Build Green "Follow the link -> $($APIResponse.html_url)"
@@ -203,6 +185,8 @@ task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerSh
     # git @('pull', 'origin', $MainGitBranch)
     # # git fetch --force --tags --prune --progress --no-recurse-submodules origin
     # # git @('checkout', '--progress', '--force' (git @('rev-parse', "origin/$MainGitBranch")))
+
+    . Set-SamplerTaskVariable
 
     $ChangelogPath = Get-SamplerAbsolutePath -Path $ChangeLogPath -RelativeTo $ProjectPath
     "`Changelog Path                 = '$ChangeLogPath'"
