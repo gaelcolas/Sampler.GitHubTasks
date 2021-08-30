@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added logo.
 - Added Get-GHOwnerRepoFromRemoteUrl function.
 
+### Removed
+
+- Removed GitHub Access Token from variable being displayed during build. Fixes Issue #17.
+
 ### Changed
 
 - Fixed tasks to use the new Sampler version and its public functions.
