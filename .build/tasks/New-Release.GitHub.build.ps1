@@ -110,7 +110,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
         }
 
         $displayGHReleaseParams = $getGHReleaseParams.Clone()
-        $displayGHReleaseParams.Remove('AccessToken')
+        $displayGHReleaseParams.['AccessToken'] = 'Redacted'
 
         Write-Build DarkGray "Checking if the Release exists: `r`n Get-GithubRelease $($displayGHReleaseParams | Out-String)"
 
