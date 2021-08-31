@@ -109,7 +109,10 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
             ErrorAction    = 'Stop'
         }
 
-        Write-Build DarkGray "Checking if the Release exists: `r`n Get-GithubRelease $($getGHReleaseParams | Out-String)"
+        $displayGHReleaseParams = $getGHReleaseParams.Clone()
+        $displayGHReleaseParams['AccessToken'] = 'Redacted'
+
+        Write-Build DarkGray "Checking if the Release exists: `r`n Get-GithubRelease $($displayGHReleaseParams | Out-String)"
 
         try
         {
