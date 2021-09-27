@@ -65,8 +65,11 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
     "`tProject Path                  = $ProjectPath"
 
-    # find Module's nupkg
-    $PackageToRelease = Get-ChildItem (Join-Path $OutputDirectory "$ProjectName.$moduleVersion.nupkg")
+    # find Module's nupkg if it exists
+    $packagedProjectNupkg = Join-Path -Path $OutputDirectory -ChildPath "$ProjectName.$moduleVersion.nupkg"
+    $PackageToRelease = Get-ChildItem -Path $packagedProjectNupkg -ErrorAction Ignore
+    # If the Project nupkg is not found, don't fail. You can still create a release and specify the
+    # assets in the build.yml (i.e. Chocolatey packages or Azure Policy Guest Config Packages)
     $ReleaseTag = "v$ModuleVersion"
 
     Write-Build DarkGray "About to release '$PackageToRelease' with tag and release name '$ReleaseTag'"
@@ -74,7 +77,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
     if ($remoteURL -notMatch 'github')
     {
-        Write-Build Yellow "Skipping Publish GitHub release to $RemoteURL"
+        Write-Build Yellow "Skipping Publish to GitHub release at '$RemoteURL' (not a GitHub URL)."
         return
     }
 
@@ -109,10 +112,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
             ErrorAction    = 'Stop'
         }
 
-        $displayGHReleaseParams = $getGHReleaseParams.Clone()
-        $displayGHReleaseParams['AccessToken'] = 'Redacted'
-
-        Write-Build DarkGray "Checking if the Release exists: `r`n Get-GithubRelease $($displayGHReleaseParams | Out-String)"
+        Write-Build DarkGray "Checking if the Release exists: `r`n Get-GithubRelease $($getGHReleaseParams | Out-String)"
 
         try
         {
