@@ -55,7 +55,6 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
     . Set-SamplerTaskVariable
 
-
     $ReleaseNotesPath = Get-SamplerAbsolutePath -Path $ReleaseNotesPath -RelativeTo $OutputDirectory
     "`tRelease Notes Path            = '$ReleaseNotesPath'"
 
@@ -73,12 +72,6 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
     Write-Build DarkGray "About to release '$PackageToRelease' with tag and release name '$ReleaseTag'"
     $remoteURL = git remote get-url origin
-
-    if ($remoteURL -notMatch 'github')
-    {
-        Write-Build Yellow "Skipping Publish to GitHub release at '$RemoteURL' (not a GitHub URL)."
-        return
-    }
 
     # Retrieving ReleaseNotes or defaulting to Updated ChangeLog
     if (Import-Module ChangelogManagement -ErrorAction SilentlyContinue -PassThru)
@@ -111,7 +104,10 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
             ErrorAction    = 'Stop'
         }
 
-        Write-Build DarkGray "Checking if the Release exists: `r`n Get-GithubRelease $($getGHReleaseParams | Out-String)"
+        $displayGHReleaseParams = $getGHReleaseParams.Clone()
+        $displayGHReleaseParams['AccessToken'] = 'Redacted'
+
+        Write-Build DarkGray "Checking if the Release exists: `r`n Get-GithubRelease $($displayGHReleaseParams | Out-String)"
 
         try
         {
