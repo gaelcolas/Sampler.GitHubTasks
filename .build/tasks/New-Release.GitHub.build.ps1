@@ -1,6 +1,5 @@
-param (
-    # Base directory of all output (default to 'output')
-
+param
+(
     [Parameter()]
     [System.String]
     $BuiltModuleSubdirectory = (property BuiltModuleSubdirectory ''),
@@ -11,11 +10,11 @@ param (
 
     [Parameter()]
     [System.String]
-    $ProjectName = (property ProjectName $(Get-SamplerProjectName -BuildRoot $BuildRoot)),
+    $ProjectName = (property ProjectName ''),
 
     [Parameter()]
     [System.String]
-    $SourcePath = (property SourcePath $(Get-SamplerSourcePath -BuildRoot $BuildRoot)),
+    $SourcePath = (property SourcePath ''),
 
     [Parameter()]
     $ChangelogPath = (property ChangelogPath 'CHANGELOG.md'),
@@ -29,7 +28,7 @@ param (
 
     [Parameter()]
     [string]
-    $ReleaseBranch = (property ReleaseBranch 'master'),
+    $ReleaseBranch = (property ReleaseBranch 'main'),
 
     [Parameter()]
     [string]
@@ -49,7 +48,7 @@ param (
     $SkipPublish = (property SkipPublish ''),
 
     [Parameter()]
-    $MainGitBranch = (property MainGitBranch 'master')
+    $MainGitBranch = (property MainGitBranch 'main')
 )
 
 task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShellForGitHub -ListAvailable)) {
