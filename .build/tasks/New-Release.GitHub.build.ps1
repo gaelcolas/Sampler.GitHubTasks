@@ -1,6 +1,5 @@
-param (
-    # Base directory of all output (default to 'output')
-
+param
+(
     [Parameter()]
     [System.String]
     $BuiltModuleSubdirectory = (property BuiltModuleSubdirectory ''),
@@ -11,11 +10,11 @@ param (
 
     [Parameter()]
     [System.String]
-    $ProjectName = (property ProjectName $(Get-SamplerProjectName -BuildRoot $BuildRoot)),
+    $ProjectName = (property ProjectName ''),
 
     [Parameter()]
     [System.String]
-    $SourcePath = (property SourcePath $(Get-SamplerSourcePath -BuildRoot $BuildRoot)),
+    $SourcePath = (property SourcePath ''),
 
     [Parameter()]
     $ChangelogPath = (property ChangelogPath 'CHANGELOG.md'),
@@ -29,7 +28,7 @@ param (
 
     [Parameter()]
     [string]
-    $ReleaseBranch = (property ReleaseBranch 'master'),
+    $ReleaseBranch = (property ReleaseBranch 'main'),
 
     [Parameter()]
     [string]
@@ -49,13 +48,12 @@ param (
     $SkipPublish = (property SkipPublish ''),
 
     [Parameter()]
-    $MainGitBranch = (property MainGitBranch 'master')
+    $MainGitBranch = (property MainGitBranch 'main')
 )
 
 task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShellForGitHub -ListAvailable)) {
 
     . Set-SamplerTaskVariable
-
 
     $ReleaseNotesPath = Get-SamplerAbsolutePath -Path $ReleaseNotesPath -RelativeTo $OutputDirectory
     "`tRelease Notes Path            = '$ReleaseNotesPath'"
@@ -65,18 +63,15 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
     "`tProject Path                  = $ProjectPath"
 
-    # find Module's nupkg
-    $PackageToRelease = Get-ChildItem (Join-Path $OutputDirectory "$ProjectName.$moduleVersion.nupkg")
+    # find Module's nupkg if it exists
+    $packagedProjectNupkg = Join-Path -Path $OutputDirectory -ChildPath "$ProjectName.$moduleVersion.nupkg"
+    $PackageToRelease = Get-ChildItem -Path $packagedProjectNupkg -ErrorAction Ignore
+    # If the Project nupkg is not found, don't fail. You can still create a release and specify the
+    # assets in the build.yml (i.e. Chocolatey packages or Azure Policy Guest Config Packages)
     $ReleaseTag = "v$ModuleVersion"
 
     Write-Build DarkGray "About to release '$PackageToRelease' with tag and release name '$ReleaseTag'"
     $remoteURL = git remote get-url origin
-
-    if ($remoteURL -notMatch 'github')
-    {
-        Write-Build Yellow "Skipping Publish GitHub release to $RemoteURL"
-        return
-    }
 
     # Retrieving ReleaseNotes or defaulting to Updated ChangeLog
     if (Import-Module ChangelogManagement -ErrorAction SilentlyContinue -PassThru)
