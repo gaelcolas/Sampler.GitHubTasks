@@ -5,10 +5,11 @@ SHORT DESCRIPTION
     Sampler tasks for GitHub integrations
 
 LONG DESCRIPTION
-    {{ Add Long description here }}
+    This modules contains tasks to publish Release and artifacts to GitHub, and to create pull request to changelog.
+    This is to be used with the Sampler pipeline.
 
 EXAMPLES
-    PS C:\> {{ add examples here }}
+    PS C:\> ./build.ps1 -Tasks Publish_release_to_GitHub
 
 NOTE:
     Thank you to all those who contributed to this module, by writing code, sharing opinions, and provided feedback.
@@ -17,8 +18,7 @@ TROUBLESHOOTING NOTE:
     Look out on the Github repository for issues and new releases.
 
 SEE ALSO
-  - {{ Please add Project URI such as github }}}
+  - https://github.com/gaelcolas/Sampler
 
 KEYWORDS
-      {{ Add coma separated keywords here }}
-
+      Sampler, GitHub, template, plater, tasks, InvokeBuild
