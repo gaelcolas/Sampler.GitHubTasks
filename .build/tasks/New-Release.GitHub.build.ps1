@@ -178,7 +178,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
     }
 }
 
-task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerShellForGitHub)) {
+task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerShellForGitHub -ListAvailable)) {
     # # This is how AzDO setup the environment:
     # git init
     # git remote add origin https://github.com/gaelcolas/Sampler
