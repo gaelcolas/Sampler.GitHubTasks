@@ -135,10 +135,14 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
             Write-Build DarkGray "Creating new GitHub release '$ReleaseTag ' at '$remoteURL'."
             $APIResponse = New-GitHubRelease @releaseParams
             Write-Build Green "Release Created. Adding Assets..."
-            if (Test-Path -Path $PackageToRelease)
+            if ((-not [string]::IsNullOrEmpty($PackageToRelease)) -and (Test-Path -Path $PackageToRelease))
             {
                 $APIResponse | New-GitHubReleaseAsset -Path $PackageToRelease -AccessToken $GitHubToken
                 Write-Build Green "Asset '$PackageToRelease' added."
+            }
+            else
+            {
+                Write-Build DarkGray 'No Module nupkg found for this release.'
             }
 
             if ($ReleaseAssets = $BuildInfo.GitHubConfig.ReleaseAssets)
