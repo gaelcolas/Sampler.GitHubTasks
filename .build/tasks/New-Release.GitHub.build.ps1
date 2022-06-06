@@ -93,8 +93,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
     if (!$SkipPublish)
     {
-        Write-Build DarkGray "Publishing GitHub release:"
-        Write-Build DarkGray ($releaseParams | Out-String)
+        Write-Build DarkGray ("About to publish a GitHub release for release tag '{0}'." -f $ReleaseTag)
 
         $getGHReleaseParams = @{
             Tag            = $ReleaseTag
@@ -105,9 +104,9 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
         }
 
         $displayGHReleaseParams = $getGHReleaseParams.Clone()
-        $displayGHReleaseParams['AccessToken'] = 'Redacted'
+        $displayGHReleaseParams['AccessToken'] = '<Redacted>'
 
-        Write-Build DarkGray "Checking if the Release exists: `r`n Get-GithubRelease $($displayGHReleaseParams | Out-String)"
+        Write-Build DarkGray "Checking if the Release exists. Calling Get-GithubRelease with the parameters:`r`n$($displayGHReleaseParams | Out-String)"
 
         try
         {
@@ -129,10 +128,10 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
                 Prerelease     = [bool]($PreReleaseTag)
                 Body           = $ReleaseNotes
                 AccessToken    = $GitHubToken
-                Verbose        = $true
+                Verbose        = $VerbosePreference
             }
 
-            Write-Build DarkGray "Creating new GitHub release '$ReleaseTag ' at '$remoteURL'."
+            Write-Build DarkGray "Creating new GitHub release '$ReleaseTag' at '$remoteURL'."
             $APIResponse = New-GitHubRelease @releaseParams
             Write-Build Green "Release Created. Adding Assets..."
             if ((-not [string]::IsNullOrEmpty($PackageToRelease)) -and (Test-Path -Path $PackageToRelease))

@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated the Readme with the icon.
 - Adding delay after creating release to make sure the tag is available at next git pull.
 - Updating when to skip the Create Changelog PR task (adding -ListAvailable).
+- Task `Publish_release_to_GitHub`
+  - Removed unnecessary code line ([issue #22](https://github.com/gaelcolas/Sampler.GitHubTasks/issues/22)).
+  - Now the command `New-GitHubRelease` only outputs verbose information
+    if `$VerbosePreference` says so.
 
 ### Fixed
 
