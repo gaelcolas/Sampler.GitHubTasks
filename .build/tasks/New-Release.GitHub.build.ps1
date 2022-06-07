@@ -93,7 +93,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
     if (!$SkipPublish)
     {
-        Write-Build DarkGray ("About to publish a GitHub release for release tag '{0}'." -f $ReleaseTag)
+        Write-Build DarkGray "About to publish a GitHub release for release tag '$ReleaseTag'."
 
         $getGHReleaseParams = @{
             Tag            = $ReleaseTag
