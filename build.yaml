@@ -61,9 +61,9 @@ BuildWorkflow:
     #- Merge_CodeCoverage_Files
 
   publish:
-    - publish_module_to_gallery
-    - Publish_release_to_GitHub
-    - Create_ChangeLog_GitHub_PR
+    - Publish_Release_To_GitHub
+    #- Publish_Module_To_gallery
+    #- Publish_GitHub_Wiki_Content
 
 ####################################################
 #       PESTER  Configuration                      #
