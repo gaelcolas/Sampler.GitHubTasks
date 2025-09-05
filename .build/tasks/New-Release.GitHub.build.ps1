@@ -185,76 +185,84 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
                 $displayReleaseParams = $releaseParams.Clone()
                 $displayReleaseParams['AccessToken'] = '<Redacted>'
                 Write-Build Yellow ($displayReleaseParams | Out-String)
-                
-                if ((-not [string]::IsNullOrEmpty($PackageToRelease)) -and (Test-Path -Path $PackageToRelease))
-                {
-                    Write-Build Yellow "DRYRUN: Would add asset '$PackageToRelease' to release."
-                }
-                else
-                {
-                    Write-Build Yellow "DRYRUN: No Module nupkg found for this release."
-                }
-
-                if ($ReleaseAssets = $BuildInfo.GitHubConfig.ReleaseAssets)
-                {
-                    foreach ($assetToRelease in $ReleaseAssets)
-                    {
-                        $assetToRelease = $ExecutionContext.InvokeCommand.ExpandString($assetToRelease)
-                        if (Test-Path -Path $assetToRelease -ErrorAction SilentlyContinue)
-                        {
-                            (Get-Item -Path $assetToRelease -ErrorAction 'SilentlyContinue').FullName | ForEach-Object -Process {
-                                Write-Build Yellow "DRYRUN: Would add asset '$_' to release."
-                            }
-                        }
-                        else
-                        {
-                            Write-Build Yellow "DRYRUN: Asset '$_' not found (would skip)."
-                        }
-                    }
-                }
-                else
-                {
-                    Write-Build Yellow "DRYRUN: No extra assets to add to release."
-                }
             }
             else
             {
                 Write-Build DarkGray "Creating new GitHub release '$ReleaseTag' at '$remoteURL'."
                 $APIResponse = New-GitHubRelease @releaseParams
                 Write-Build Green "Release Created. Adding Assets..."
-                if ((-not [string]::IsNullOrEmpty($PackageToRelease)) -and (Test-Path -Path $PackageToRelease))
+            }
+
+            if ((-not [string]::IsNullOrEmpty($PackageToRelease)) -and (Test-Path -Path $PackageToRelease))
+            {
+                if ($DryRun)
+                {
+                    Write-Build Yellow "DRYRUN: Would add asset '$PackageToRelease' to release."
+                }
+                else
                 {
                     $APIResponse | New-GitHubReleaseAsset -Path $PackageToRelease -AccessToken $GitHubToken
                     Write-Build Green "Asset '$PackageToRelease' added."
+                }
+            }
+            else
+            {
+                if ($DryRun)
+                {
+                    Write-Build Yellow "DRYRUN: No Module nupkg found for this release."
                 }
                 else
                 {
                     Write-Build DarkGray 'No Module nupkg found for this release.'
                 }
+            }
 
-                if ($ReleaseAssets = $BuildInfo.GitHubConfig.ReleaseAssets)
+            if ($ReleaseAssets = $BuildInfo.GitHubConfig.ReleaseAssets)
+            {
+                foreach ($assetToRelease in $ReleaseAssets)
                 {
-                    foreach ($assetToRelease in $ReleaseAssets)
+                    $assetToRelease = $ExecutionContext.InvokeCommand.ExpandString($assetToRelease)
+                    if (Test-Path -Path $assetToRelease -ErrorAction SilentlyContinue)
                     {
-                        $assetToRelease = $ExecutionContext.InvokeCommand.ExpandString($assetToRelease)
-                        if (Test-Path -Path $assetToRelease -ErrorAction SilentlyContinue)
-                        {
-                            (Get-Item -Path $assetToRelease -ErrorAction 'SilentlyContinue').FullName | ForEach-Object -Process {
+                        (Get-Item -Path $assetToRelease -ErrorAction 'SilentlyContinue').FullName | ForEach-Object -Process {
+                            if ($DryRun)
+                            {
+                                Write-Build Yellow "DRYRUN: Would add asset '$_' to release."
+                            }
+                            else
+                            {
                                 $APIResponse | New-GitHubReleaseAsset -Path $_ -AccessToken $GitHubToken
                                 Write-Build Green "    + Adding asset '$_' to the relase $ReleaseTag."
                             }
                         }
+                    }
+                    else
+                    {
+                        if ($DryRun)
+                        {
+                            Write-Build Yellow "DRYRUN: Asset '$assetToRelease' not found (would skip)."
+                        }
                         else
                         {
-                            Write-Build Yellow "    ! Asset '$_' not found."
+                            Write-Build Yellow "    ! Asset '$assetToRelease' not found."
                         }
                     }
+                }
+            }
+            else
+            {
+                if ($DryRun)
+                {
+                    Write-Build Yellow "DRYRUN: No extra assets to add to release."
                 }
                 else
                 {
                     Write-Build DarkGray 'No extra asset to add to release.'
                 }
+            }
 
+            if (-not $DryRun)
+            {
                 Write-Build Green "Follow the link -> $($APIResponse.html_url)"
                 Start-Sleep -Seconds 5 # Making a pause to make sure the tag will be available at next Git Pull
             }
