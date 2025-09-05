@@ -48,7 +48,16 @@ param
     $SkipPublish = (property SkipPublish ''),
 
     [Parameter()]
-    $MainGitBranch = (property MainGitBranch 'main')
+    $MainGitBranch = (property MainGitBranch 'main'),
+
+    [Parameter()]
+    [System.String]
+    $BuildCommit = (property BuildCommit $(
+        # Prefer CI-provided SHAs; fall back to local HEAD
+        if ($env:GITHUB_SHA) { return $env:GITHUB_SHA }
+        if ($env:BUILD_SOURCEVERSION) { return $env:BUILD_SOURCEVERSION }
+        try { git rev-parse HEAD } catch { '' }
+    ))
 )
 
 task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShellForGitHub -ListAvailable)) {
@@ -95,6 +104,32 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
     {
         Write-Build DarkGray "About to publish a GitHub release for release tag '$ReleaseTag'."
 
+        # Debug: log how BuildCommit was resolved
+        $sourceHint = 'parameter'
+
+        if (-not $PSBoundParameters.ContainsKey('BuildCommit') -or [string]::IsNullOrWhiteSpace($BuildCommit))
+        {
+            if ($env:GITHUB_SHA -and $BuildCommit -eq $env:GITHUB_SHA)
+            {
+                $sourceHint = 'GITHUB_SHA'
+            }
+            elseif ($env:BUILD_SOURCEVERSION -and $BuildCommit -eq $env:BUILD_SOURCEVERSION)
+            {
+                $sourceHint = 'BUILD_SOURCEVERSION'
+            }
+            else
+            {
+                $sourceHint = 'git rev-parse HEAD'
+            }
+        }
+
+        Write-Build Cyan "`tBuildCommit: $BuildCommit (source: $sourceHint)"
+
+        if (-not $BuildCommit -or $BuildCommit.Trim().Length -eq 0)
+        {
+            throw "Unable to determine the commit to tag. Provide -BuildCommit, or ensure CI exposes GITHUB_SHA/BUILD_SOURCEVERSION, or that git rev-parse HEAD works."
+        }
+
         $getGHReleaseParams = @{
             Tag            = $ReleaseTag
             AccessToken    = $GitHubToken
@@ -122,7 +157,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
             $releaseParams = @{
                 OwnerName      = $repoInfo.Owner
                 RepositoryName = $repoInfo.Repository
-                Commitish      = (git @('rev-parse', "origin/$MainGitBranch"))
+                Commitish      = $BuildCommit
                 Tag            = $ReleaseTag
                 Name           = $ReleaseTag
                 Prerelease     = [bool]($PreReleaseTag)
