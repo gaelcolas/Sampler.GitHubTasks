@@ -52,12 +52,10 @@ param
 
     [Parameter()]
     [System.String]
-    $BuildCommit = (property BuildCommit $(
-        # Prefer CI-provided SHAs; fall back to local HEAD
-        if ($env:GITHUB_SHA) { return $env:GITHUB_SHA }
-        if ($env:BUILD_SOURCEVERSION) { return $env:BUILD_SOURCEVERSION }
-        try { git rev-parse HEAD } catch { '' }
-    ))
+    $BuildCommit = (property BuildCommit ''),
+
+    [Parameter()]
+    $DryRun = (property DryRun $false)
 )
 
 task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShellForGitHub -ListAvailable)) {
@@ -104,23 +102,37 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
     {
         Write-Build DarkGray "About to publish a GitHub release for release tag '$ReleaseTag'."
 
-        # Debug: log how BuildCommit was resolved
-        $sourceHint = 'parameter'
-
-        if (-not $PSBoundParameters.ContainsKey('BuildCommit') -or [string]::IsNullOrWhiteSpace($BuildCommit))
+        # Determine BuildCommit if not provided or empty
+        if (-not $BuildCommit -or $BuildCommit.Trim().Length -eq 0)
         {
-            if ($env:GITHUB_SHA -and $BuildCommit -eq $env:GITHUB_SHA)
+            # Prefer CI-provided SHAs; fall back to local HEAD
+            if ($env:GITHUB_SHA)
             {
+                $BuildCommit = $env:GITHUB_SHA
                 $sourceHint = 'GITHUB_SHA'
             }
-            elseif ($env:BUILD_SOURCEVERSION -and $BuildCommit -eq $env:BUILD_SOURCEVERSION)
+            elseif ($env:BUILD_SOURCEVERSION)
             {
+                $BuildCommit = $env:BUILD_SOURCEVERSION
                 $sourceHint = 'BUILD_SOURCEVERSION'
             }
             else
             {
-                $sourceHint = 'git rev-parse HEAD'
+                try
+                {
+                    $BuildCommit = git rev-parse HEAD
+                    $sourceHint = 'git rev-parse HEAD'
+                }
+                catch
+                {
+                    $BuildCommit = ''
+                    $sourceHint = 'failed to resolve'
+                }
             }
+        }
+        else
+        {
+            $sourceHint = 'parameter'
         }
 
         Write-Build Cyan "`tBuildCommit: $BuildCommit (source: $sourceHint)"
@@ -166,44 +178,86 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
                 Verbose        = $VerbosePreference
             }
 
-            Write-Build DarkGray "Creating new GitHub release '$ReleaseTag' at '$remoteURL'."
-            $APIResponse = New-GitHubRelease @releaseParams
-            Write-Build Green "Release Created. Adding Assets..."
-            if ((-not [string]::IsNullOrEmpty($PackageToRelease)) -and (Test-Path -Path $PackageToRelease))
+            if ($DryRun)
             {
-                $APIResponse | New-GitHubReleaseAsset -Path $PackageToRelease -AccessToken $GitHubToken
-                Write-Build Green "Asset '$PackageToRelease' added."
-            }
-            else
-            {
-                Write-Build DarkGray 'No Module nupkg found for this release.'
-            }
-
-            if ($ReleaseAssets = $BuildInfo.GitHubConfig.ReleaseAssets)
-            {
-                foreach ($assetToRelease in $ReleaseAssets)
+                Write-Build Yellow "DRYRUN: Would create GitHub release '$ReleaseTag' at '$remoteURL'."
+                Write-Build Yellow "DRYRUN: Release parameters would be:"
+                $displayReleaseParams = $releaseParams.Clone()
+                $displayReleaseParams['AccessToken'] = '<Redacted>'
+                Write-Build Yellow ($displayReleaseParams | Out-String)
+                
+                if ((-not [string]::IsNullOrEmpty($PackageToRelease)) -and (Test-Path -Path $PackageToRelease))
                 {
-                    $assetToRelease = $ExecutionContext.InvokeCommand.ExpandString($assetToRelease)
-                    if (Test-Path -Path $assetToRelease -ErrorAction SilentlyContinue)
+                    Write-Build Yellow "DRYRUN: Would add asset '$PackageToRelease' to release."
+                }
+                else
+                {
+                    Write-Build Yellow "DRYRUN: No Module nupkg found for this release."
+                }
+
+                if ($ReleaseAssets = $BuildInfo.GitHubConfig.ReleaseAssets)
+                {
+                    foreach ($assetToRelease in $ReleaseAssets)
                     {
-                        (Get-Item -Path $assetToRelease -ErrorAction 'SilentlyContinue').FullName | ForEach-Object -Process {
-                            $APIResponse | New-GitHubReleaseAsset -Path $_ -AccessToken $GitHubToken
-                            Write-Build Green "    + Adding asset '$_' to the relase $ReleaseTag."
+                        $assetToRelease = $ExecutionContext.InvokeCommand.ExpandString($assetToRelease)
+                        if (Test-Path -Path $assetToRelease -ErrorAction SilentlyContinue)
+                        {
+                            (Get-Item -Path $assetToRelease -ErrorAction 'SilentlyContinue').FullName | ForEach-Object -Process {
+                                Write-Build Yellow "DRYRUN: Would add asset '$_' to release."
+                            }
+                        }
+                        else
+                        {
+                            Write-Build Yellow "DRYRUN: Asset '$_' not found (would skip)."
                         }
                     }
-                    else
-                    {
-                        Write-Build Yellow "    ! Asset '$_' not found."
-                    }
+                }
+                else
+                {
+                    Write-Build Yellow "DRYRUN: No extra assets to add to release."
                 }
             }
             else
             {
-                Write-Build DarkGray 'No extra asset to add to release.'
-            }
+                Write-Build DarkGray "Creating new GitHub release '$ReleaseTag' at '$remoteURL'."
+                $APIResponse = New-GitHubRelease @releaseParams
+                Write-Build Green "Release Created. Adding Assets..."
+                if ((-not [string]::IsNullOrEmpty($PackageToRelease)) -and (Test-Path -Path $PackageToRelease))
+                {
+                    $APIResponse | New-GitHubReleaseAsset -Path $PackageToRelease -AccessToken $GitHubToken
+                    Write-Build Green "Asset '$PackageToRelease' added."
+                }
+                else
+                {
+                    Write-Build DarkGray 'No Module nupkg found for this release.'
+                }
 
-            Write-Build Green "Follow the link -> $($APIResponse.html_url)"
-            Start-Sleep -Seconds 5 # Making a pause to make sure the tag will be available at next Git Pull
+                if ($ReleaseAssets = $BuildInfo.GitHubConfig.ReleaseAssets)
+                {
+                    foreach ($assetToRelease in $ReleaseAssets)
+                    {
+                        $assetToRelease = $ExecutionContext.InvokeCommand.ExpandString($assetToRelease)
+                        if (Test-Path -Path $assetToRelease -ErrorAction SilentlyContinue)
+                        {
+                            (Get-Item -Path $assetToRelease -ErrorAction 'SilentlyContinue').FullName | ForEach-Object -Process {
+                                $APIResponse | New-GitHubReleaseAsset -Path $_ -AccessToken $GitHubToken
+                                Write-Build Green "    + Adding asset '$_' to the relase $ReleaseTag."
+                            }
+                        }
+                        else
+                        {
+                            Write-Build Yellow "    ! Asset '$_' not found."
+                        }
+                    }
+                }
+                else
+                {
+                    Write-Build DarkGray 'No extra asset to add to release.'
+                }
+
+                Write-Build Green "Follow the link -> $($APIResponse.html_url)"
+                Start-Sleep -Seconds 5 # Making a pause to make sure the tag will be available at next Git Pull
+            }
         }
         else
         {
