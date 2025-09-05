@@ -105,7 +105,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
         # Determine BuildCommit if not provided or empty
         if (-not $BuildCommit -or $BuildCommit.Trim().Length -eq 0)
         {
-            # Prefer CI-provided SHAs; fall back to local HEAD
+            # Prefer CI-provided SHAs; fall back to origin main branch for backward compatibility
             if ($env:GITHUB_SHA)
             {
                 $BuildCommit = $env:GITHUB_SHA
@@ -120,8 +120,8 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
             {
                 try
                 {
-                    $BuildCommit = git rev-parse HEAD
-                    $sourceHint = 'git rev-parse HEAD'
+                    $BuildCommit = git rev-parse "origin/$MainGitBranch"
+                    $sourceHint = "git rev-parse origin/$MainGitBranch"
                 }
                 catch
                 {
