@@ -207,14 +207,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
             }
             else
             {
-                if ($DryRun)
-                {
-                    Write-Build Yellow "DRYRUN: No Module nupkg found for this release."
-                }
-                else
-                {
-                    Write-Build DarkGray 'No Module nupkg found for this release.'
-                }
+                Write-Build DarkGray 'No Module nupkg found for this release.'
             }
 
             if ($ReleaseAssets = $BuildInfo.GitHubConfig.ReleaseAssets)
@@ -238,27 +231,13 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
                     }
                     else
                     {
-                        if ($DryRun)
-                        {
-                            Write-Build Yellow "DRYRUN: Asset '$assetToRelease' not found (would skip)."
-                        }
-                        else
-                        {
-                            Write-Build Yellow "    ! Asset '$assetToRelease' not found."
-                        }
+                        Write-Build Yellow "    ! Asset '$assetToRelease' not found."
                     }
                 }
             }
             else
             {
-                if ($DryRun)
-                {
-                    Write-Build Yellow "DRYRUN: No extra assets to add to release."
-                }
-                else
-                {
-                    Write-Build DarkGray 'No extra asset to add to release.'
-                }
+                Write-Build DarkGray 'No extra asset to add to release.'
             }
 
             if (-not $DryRun)
