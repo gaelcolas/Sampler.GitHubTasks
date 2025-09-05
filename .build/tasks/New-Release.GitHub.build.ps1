@@ -225,7 +225,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
                             else
                             {
                                 $APIResponse | New-GitHubReleaseAsset -Path $_ -AccessToken $GitHubToken
-                                Write-Build Green "    + Adding asset '$_' to the relase $ReleaseTag."
+                                Write-Build Green "    + Adding asset '$_' to the release $ReleaseTag."
                             }
                         }
                     }
