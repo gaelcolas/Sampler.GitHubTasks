@@ -139,7 +139,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
         if (-not $BuildCommit -or $BuildCommit.Trim().Length -eq 0)
         {
-            throw "Unable to determine the commit to tag. Provide -BuildCommit, or ensure CI exposes GITHUB_SHA/BUILD_SOURCEVERSION, or that git rev-parse HEAD works."
+            throw "Unable to determine the commit to tag. Provide -BuildCommit, or ensure CI exposes GITHUB_SHA/BUILD_SOURCEVERSION, or that git rev-parse origin/$MainGitBranch works."
         }
 
         $getGHReleaseParams = @{
