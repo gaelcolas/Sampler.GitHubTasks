@@ -86,11 +86,10 @@ stages:
               testResultsFiles: 'output/testResults/NUnit*.xml'
               testRunTitle: 'Linux'
 
-          - task: PublishCodeCoverageResults@1
+          - task: PublishCodeCoverageResults@2
             displayName: 'Publish Code Coverage'
             condition: succeededOrFailed()
             inputs:
-              codeCoverageTool: 'JaCoCo'
               summaryFileLocation: 'output/testResults/CodeCov*.xml'
               pathToSources: '$(Build.SourcesDirectory)/output/$(dscBuildVariable.RepositoryName)'
 
@@ -130,11 +129,10 @@ stages:
               testResultsFiles: 'output/testResults/NUnit*.xml'
               testRunTitle: 'Windows Server Core (PowerShell Core)'
 
-          - task: PublishCodeCoverageResults@1
+          - task: PublishCodeCoverageResults@2
             displayName: 'Publish Code Coverage'
             condition: succeededOrFailed()
             inputs:
-              codeCoverageTool: 'JaCoCo'
               summaryFileLocation: 'output/testResults/CodeCov*.xml'
               pathToSources: '$(Build.SourcesDirectory)/output/$(dscBuildVariable.RepositoryName)'
 
@@ -174,11 +172,10 @@ stages:
               testResultsFiles: 'output/testResults/NUnit*.xml'
               testRunTitle: 'Windows Server Core (Windows PowerShell)'
 
-          - task: PublishCodeCoverageResults@1
+          - task: PublishCodeCoverageResults@2
             displayName: 'Publish Code Coverage'
             condition: succeededOrFailed()
             inputs:
-              codeCoverageTool: 'JaCoCo'
               summaryFileLocation: 'output/testResults/CodeCov*.xml'
               pathToSources: '$(Build.SourcesDirectory)/output/$(dscBuildVariable.RepositoryName)'
 
@@ -218,11 +215,10 @@ stages:
               testResultsFiles: 'output/testResults/NUnit*.xml'
               testRunTitle: 'MacOS'
 
-          - task: PublishCodeCoverageResults@1
+          - task: PublishCodeCoverageResults@2
             displayName: 'Publish Code Coverage'
             condition: succeededOrFailed()
             inputs:
-              codeCoverageTool: 'JaCoCo'
               summaryFileLocation: 'output/testResults/CodeCov*.xml'
               pathToSources: '$(Build.SourcesDirectory)/output/$(dscBuildVariable.RepositoryName)'
 

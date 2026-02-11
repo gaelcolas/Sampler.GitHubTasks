@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Now the command `New-GitHubRelease` only outputs verbose information
     if `$VerbosePreference` says so.
   - Fixed to use the actual built commit instead of latest commit on main branch, improving traceability and preventing CI pipeline conflicts.
+  - Disable Publish_GitHub_Wiki_Content task.
+  - Fix PSGallery preview badge.
 
 ### Fixed
 
