@@ -43,3 +43,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed typo when adding debug output for GH task.
 - Fixed using the `Set-SamplerTaskVariable` in GH tasks.
 - Fixed the Azure DevOps pipeline to build on Ubuntu latest and Windows latest.
+- Fixed adding a release when GitHub immutable releases are enabled. ([gaelcolas/Sampler#542](https://github.com/gaelcolas/Sampler/issues/542)).
