@@ -175,6 +175,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
                 Prerelease     = [bool]($PreReleaseTag)
                 Body           = $ReleaseNotes
                 AccessToken    = $GitHubToken
+                Draft          = $true
                 Verbose        = $VerbosePreference
             }
 
@@ -190,7 +191,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
             {
                 Write-Build DarkGray "Creating new GitHub release '$ReleaseTag' at '$remoteURL'."
                 $APIResponse = New-GitHubRelease @releaseParams
-                Write-Build Green "Release Created. Adding Assets..."
+                Write-Build Green "Draft Release Created. Adding Assets..."
             }
 
             if ((-not [string]::IsNullOrEmpty($PackageToRelease)) -and (Test-Path -Path $PackageToRelease))
@@ -242,6 +243,18 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
 
             if (-not $DryRun)
             {
+                $setReleaseParams = @{
+                    OwnerName      = $repoInfo.Owner
+                    RepositoryName = $repoInfo.Repository
+                    Release        = $APIResponse.ReleaseId
+                    Draft          = $false
+                    AccessToken    = $GitHubToken
+                    Verbose        = $VerbosePreference
+                }
+
+                Write-Build Green "Publishing release '$ReleaseTag'."
+                Set-GitHubRelease @setReleaseParams
+
                 Write-Build Green "Follow the link -> $($APIResponse.html_url)"
                 Start-Sleep -Seconds 5 # Making a pause to make sure the tag will be available at next Git Pull
             }
@@ -318,7 +331,7 @@ task Create_ChangeLog_GitHub_PR -if ($GitHubToken -and (Get-Module -Name PowerSh
         git add $GitHubFilesToAdd
         git commit -m "Updating ChangeLog since $TagVersion +semver:skip"
 
-        $remoteURL =  [URI](git remote get-url origin)
+        $remoteURL = [URI](git remote get-url origin)
         $repoInfo = Get-GHOwnerRepoFromRemoteUrl -RemoteUrl $remoteURL
 
         $URI = $remoteURL.Scheme + [URI]::SchemeDelimiter + $GitHubToken + '@' + $remoteURL.Authority + $remoteURL.PathAndQuery

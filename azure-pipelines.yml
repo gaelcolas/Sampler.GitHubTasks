@@ -262,7 +262,6 @@ stages:
               GalleryApiToken: $(GalleryApiToken)
               ReleaseBranch: main
               MainGitBranch: main
-              DryRun: true
           - task: PowerShell@2
             name: sendChangelogPR
             displayName: 'Send Changelog PR'
