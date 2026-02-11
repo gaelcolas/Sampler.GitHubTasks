@@ -2,7 +2,7 @@
 
 <img align="right" width='128px' src="./source/assets/sampler_GitHubTasks.png" alt="Sampler GitHub Tasks">
 
-[![PowerShell Gallery (with prereleases)](https://img.shields.io/powershellgallery/vpre/Sampler.GitHubTasks?label=Sampler.GitHubTasks%20Preview)](https://www.powershellgallery.com/packages/Sampler.GitHubTasks/)
+[![PowerShell Gallery (with prereleases)](https://img.shields.io/powershellgallery/v/Sampler.GitHubTasks?label=Sampler.GitHubTasks%20Preview&include_prereleases)](https://www.powershellgallery.com/packages/Sampler.GitHubTasks/)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/Sampler.GitHubTasks?label=Sampler.GitHubTasks)](https://www.powershellgallery.com/packages/Sampler.GitHubTasks/)
 [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/SynEdgy/Sampler.GitHubTasks/7)](https://synedgy.visualstudio.com/Sampler.GitHubTasks/_test/analytics?definitionId=7&contextType=build)
 ![Azure DevOps coverage](https://img.shields.io/azure-devops/coverage/Synedgy/Sampler.GitHubTasks/7)
