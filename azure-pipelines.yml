@@ -92,15 +92,19 @@ stages:
             Ubuntu:
               JOB_VMIMAGE: 'ubuntu-latest'
               JOB_PWSH: true
+              JOB_TITLE: 'Ubuntu'
             Windows_PS:
               JOB_VMIMAGE: 'windows-latest'
               JOB_PWSH: true
+              JOB_TITLE: 'Windows_PowerShell'
             Windows_WPS:
               JOB_VMIMAGE: 'windows-latest'
               JOB_PWSH: false
+              JOB_TITLE: 'Windows_WindowsPowerShell'
             MacOS:
               JOB_VMIMAGE: 'macos-latest'
               JOB_PWSH: true
+              JOB_TITLE: 'MacOS'
         timeoutInMinutes: '0'
         pool:
           vmImage: $(JOB_VMIMAGE)
@@ -126,14 +130,14 @@ stages:
             inputs:
               testResultsFormat: 'NUnit'
               testResultsFiles: '$(buildFolderName)/$(testResultFolderName)/NUnit*.xml'
-              testRunTitle: 'Unit $(JOB_VMIMAGE)'
+              testRunTitle: 'Unit $(JOB_TITLE)'
 
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Test Artifact'
             condition: succeededOrFailed()
             inputs:
               targetPath: '$(buildFolderName)/$(testResultFolderName)/'
-              artifactName: '$(testArtifactName)_$(System.JobAttempt)_$(JOB_VMIMAGE)'
+              artifactName: '$(testArtifactName)_$(System.JobAttempt)_$(JOB_TITLE)'
 
       - job: Code_Coverage
         displayName: 'Publish Code Coverage'
