@@ -249,7 +249,7 @@ if ($UseModuleFast -and -not (Get-Module -Name 'ModuleFast'))
             Write-Information -MessageData 'ModuleFast is configured to use latest released version.' -InformationAction 'Continue'
         }
 
-        $moduleFastBootstrapUri = 'bit.ly/modulefast' # cSpell: disable-line
+        $moduleFastBootstrapUri = 'https://github.com/JustinGrote/ModuleFast/releases/latest/download/ModuleFast.ps1' # cSpell: disable-line
 
         Write-Debug -Message ('Using bootstrap script at {0}' -f $moduleFastBootstrapUri)
 
