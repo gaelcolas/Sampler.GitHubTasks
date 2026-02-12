@@ -2,16 +2,18 @@
     PSDependOptions             = @{
         AddToPath  = $true
         Target     = 'output\RequiredModules'
-        Parameters = @{}
+        Parameters = @{
+            Repository = 'PSGallery'
+        }
     }
 
     InvokeBuild                 = 'latest'
-    PSScriptAnalyzer            = '1.19.0'
-    Pester                      = '4.10.1'
+    PSScriptAnalyzer            = 'latest'
+    Pester                      = 'latest'
     Plaster                     = 'latest'
 
     Sampler                     = @{
-        version = 'latest'
+        version    = 'latest'
         Parameters = @{
             AllowPrerelease = $true
         }
@@ -24,4 +26,8 @@
     'DscResource.Test'          = 'latest'
     'DscResource.AnalyzerRules' = 'latest'
     xDscResourceDesigner        = 'latest'
+
+    # Prerequisite modules for documentation.
+    'DscResource.DocGenerator'  = 'latest'
+    PlatyPS                     = 'latest'
 }
