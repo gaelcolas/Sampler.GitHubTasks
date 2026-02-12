@@ -10,7 +10,7 @@
     InvokeBuild                 = 'latest'
     PSScriptAnalyzer            = 'latest'
     Pester                      = 'latest'
-    Plaster                     = 'latest'
+    Plaster                     = '1.1.3'
 
     Sampler                     = @{
         version    = 'latest'
