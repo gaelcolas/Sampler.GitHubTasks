@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update to Pester 5
 - Use matrix strategy for azure-pipelines unit tests.
 - Add Unit tests for public functions.
+- Removed the pinning of the PSResourceGet module version from `Resolve-Dependency.psd1`.
 
 ### Fixed
 
