@@ -35,9 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed unnecessary code line ([issue #22](https://github.com/gaelcolas/Sampler.GitHubTasks/issues/22)).
   - Now the command `New-GitHubRelease` only outputs verbose information
     if `$VerbosePreference` says so.
-  - Fixed to use the actual built commit instead of latest commit on main branch, improving traceability and preventing CI pipeline conflicts.
-  - Disable Publish_GitHub_Wiki_Content task.
-  - Fix PSGallery preview badge.
+- Fixed to use the actual built commit instead of latest commit on main branch, improving traceability and preventing CI pipeline conflicts.
+- Disable Publish_GitHub_Wiki_Content task.
+- Fix PSGallery preview badge.
+- Added DocGeneration
+- Upload docs to Wiki ([issue #31](https://github.com/gaelcolas/Sampler.GitHubTasks/issues/31)).
+- Update to Pester 5
+- Use matrix strategy for azure-pipelines unit tests.
+- Add Unit tests for public functions.
 
 ### Fixed
 
