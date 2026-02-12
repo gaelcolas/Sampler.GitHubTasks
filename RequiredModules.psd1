@@ -10,13 +10,7 @@
     InvokeBuild                 = 'latest'
     PSScriptAnalyzer            = 'latest'
     Pester                      = 'latest'
-
-    Plaster                     = @{
-        version    = 'latest'
-        Parameters = @{
-            AllowPrerelease = $true
-        }
-    }
+    Plaster                     = 'latest'
 
     Sampler                     = @{
         version    = 'latest'
