@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update to Pester 5
 - Use matrix strategy for azure-pipelines unit tests.
 - Add Unit tests for public functions.
+- Use PSResourceGet 1.2.0-rc3, this looks to contain a bugfix which discovers Plaster 1.1.4 correctly.
 
 ### Fixed
 
