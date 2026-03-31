@@ -60,7 +60,7 @@ BuildWorkflow:
   pack:
     - build
     - docs
-    - package_module_nupkg
+    - package_psresource_nupkg
 
   hqrmtest:
     - Invoke_HQRM_Tests_Stop_On_Fail
@@ -183,7 +183,7 @@ TaskHeader: |
 GitHubConfig:
   ReleaseAssets:
     - 'output/CHANGELOG.md'
-    - output/WikiContent.zip
+    - 'output/WikiContent.zip'
   GitHubFilesToAdd:
     - 'CHANGELOG.md'
   GitHubConfigUserName: gaelcolas
