@@ -202,7 +202,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
                 }
                 else
                 {
-                    $APIResponse | New-GitHubReleaseAsset -Path $PackageToRelease -AccessToken $GitHubToken
+                    $null = $APIResponse | New-GitHubReleaseAsset -Path $PackageToRelease -AccessToken $GitHubToken
                     Write-Build Green "Asset '$PackageToRelease' added."
                 }
             }
@@ -225,8 +225,8 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
                             }
                             else
                             {
-                                $APIResponse | New-GitHubReleaseAsset -Path $_ -AccessToken $GitHubToken
                                 Write-Build Green "    + Adding asset '$_' to the release $ReleaseTag."
+                                $null = $APIResponse | New-GitHubReleaseAsset -Path $_ -AccessToken $GitHubToken
                             }
                         }
                     }
@@ -253,7 +253,7 @@ task Publish_release_to_GitHub -if ($GitHubToken -and (Get-Module -Name PowerShe
                 }
 
                 Write-Build Green "Publishing release '$ReleaseTag'."
-                Set-GitHubRelease @setReleaseParams
+                $null = Set-GitHubRelease @setReleaseParams
 
                 Write-Build Green "Follow the link -> $($APIResponse.html_url)"
                 Start-Sleep -Seconds 5 # Making a pause to make sure the tag will be available at next Git Pull
